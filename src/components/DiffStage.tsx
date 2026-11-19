@@ -30,43 +30,58 @@ export const DiffStage: React.FC<DiffStageProps> = ({
   onMetricsComputed,
 }) => {
   const displayCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const cachedBuffersRef = useRef<{
+    baselineCanvas: HTMLCanvasElement;
+    candidateCanvas: HTMLCanvasElement;
+    diffImageData: ImageData;
+    tolerance: number;
+  } | null>(null);
   const [draftBox, setDraftBox] = useState<{ startX: number; startY: number; currX: number; currY: number } | null>(
     null
   );
 
   useEffect(() => {
-    const baselineCanvas = document.createElement('canvas');
-    baselineCanvas.width = STAGE_WIDTH;
-    baselineCanvas.height = STAGE_HEIGHT;
-    const baseCtx = baselineCanvas.getContext('2d')!;
-    renderBaselineMockup(baseCtx, STAGE_WIDTH, STAGE_HEIGHT);
+    if (!cachedBuffersRef.current || cachedBuffersRef.current.tolerance !== tolerance) {
+      const baselineCanvas = document.createElement('canvas');
+      baselineCanvas.width = STAGE_WIDTH;
+      baselineCanvas.height = STAGE_HEIGHT;
+      const baseCtx = baselineCanvas.getContext('2d')!;
+      renderBaselineMockup(baseCtx, STAGE_WIDTH, STAGE_HEIGHT);
 
-    const candidateCanvas = document.createElement('canvas');
-    candidateCanvas.width = STAGE_WIDTH;
-    candidateCanvas.height = STAGE_HEIGHT;
-    const candCtx = candidateCanvas.getContext('2d')!;
-    renderCandidateMockup(candCtx, STAGE_WIDTH, STAGE_HEIGHT);
+      const candidateCanvas = document.createElement('canvas');
+      candidateCanvas.width = STAGE_WIDTH;
+      candidateCanvas.height = STAGE_HEIGHT;
+      const candCtx = candidateCanvas.getContext('2d')!;
+      renderCandidateMockup(candCtx, STAGE_WIDTH, STAGE_HEIGHT);
 
-    const baseData = baseCtx.getImageData(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
-    const candData = candCtx.getImageData(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+      const baseData = baseCtx.getImageData(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+      const candData = candCtx.getImageData(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
 
-    const { metrics, diffBuffer } = computePixelDiffBuffer(
-      baseData.data,
-      candData.data,
-      STAGE_WIDTH,
-      STAGE_HEIGHT,
-      tolerance
-    );
-    onMetricsComputed(metrics);
+      const { metrics, diffBuffer } = computePixelDiffBuffer(
+        baseData.data,
+        candData.data,
+        STAGE_WIDTH,
+        STAGE_HEIGHT,
+        tolerance
+      );
+      onMetricsComputed(metrics);
 
+      cachedBuffersRef.current = {
+        baselineCanvas,
+        candidateCanvas,
+        diffImageData: new ImageData(new Uint8ClampedArray(diffBuffer), STAGE_WIDTH, STAGE_HEIGHT),
+        tolerance,
+      };
+    }
+
+    const { baselineCanvas, candidateCanvas, diffImageData } = cachedBuffersRef.current;
     const outCanvas = displayCanvasRef.current;
     if (!outCanvas) return;
     const ctx = outCanvas.getContext('2d')!;
     ctx.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
 
     if (mode === 'heatmap') {
-      const diffImg = new ImageData(new Uint8ClampedArray(diffBuffer), STAGE_WIDTH, STAGE_HEIGHT);
-      ctx.putImageData(diffImg, 0, 0);
+      ctx.putImageData(diffImageData, 0, 0);
     } else if (mode === 'onion') {
       ctx.globalAlpha = 1;
       ctx.drawImage(baselineCanvas, 0, 0);

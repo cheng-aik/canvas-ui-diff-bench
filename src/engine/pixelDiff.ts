@@ -1,8 +1,46 @@
-import { DiffMetrics } from '../types/diff';
+import { BoundingBox, DiffMetrics } from '../types/diff';
 
 export interface PixelDiffResult {
   metrics: DiffMetrics;
   diffBuffer: Uint8ClampedArray;
+}
+
+/**
+ * Computes the local pixel mismatch percentage within a specific BoundingBox region
+ * so individual UI rubric assertions can be verified independently.
+ */
+export function computeRegionMismatchPercent(
+  baseline: Uint8ClampedArray,
+  candidate: Uint8ClampedArray,
+  canvasWidth: number,
+  bounds: BoundingBox,
+  colorTolerance = 24
+): number {
+  let mismatches = 0;
+  let count = 0;
+
+  const startX = Math.max(0, Math.floor(bounds.x));
+  const startY = Math.max(0, Math.floor(bounds.y));
+  const endX = startX + Math.max(1, Math.floor(bounds.width));
+  const endY = startY + Math.max(1, Math.floor(bounds.height));
+
+  for (let y = startY; y < endY; y++) {
+    for (let x = startX; x < endX; x++) {
+      const idx = (y * canvasWidth + x) * 4;
+      if (idx + 2 >= baseline.length) continue;
+
+      const dr = baseline[idx] - candidate[idx];
+      const dg = baseline[idx + 1] - candidate[idx + 1];
+      const db = baseline[idx + 2] - candidate[idx + 2];
+
+      if (Math.sqrt(dr * dr + dg * dg + db * db) > colorTolerance) {
+        mismatches++;
+      }
+      count++;
+    }
+  }
+
+  return count === 0 ? 0 : Number(((mismatches / count) * 100).toFixed(2));
 }
 
 /**
