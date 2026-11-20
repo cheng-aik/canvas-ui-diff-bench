@@ -9,6 +9,7 @@ interface RubricSidebarProps {
   onUpdate: (id: string, patch: Partial<RubricAnnotation>) => void;
   onDelete: (id: string) => void;
   onExportJson: () => void;
+  onExportMarkdown?: () => void;
 }
 
 export const RubricSidebar: React.FC<RubricSidebarProps> = ({
@@ -19,6 +20,7 @@ export const RubricSidebar: React.FC<RubricSidebarProps> = ({
   onUpdate,
   onDelete,
   onExportJson,
+  onExportMarkdown,
 }) => {
   const selected = annotations.find((a) => a.id === selectedId) ?? null;
 
@@ -167,12 +169,22 @@ export const RubricSidebar: React.FC<RubricSidebarProps> = ({
         )}
       </div>
 
-      <button
-        onClick={onExportJson}
-        className="w-full mt-4 bg-sky-600 hover:bg-sky-500 text-white font-medium py-2 rounded-lg transition-colors"
-      >
-        Export Verification Rubric JSON
-      </button>
+      <div className="pt-3 space-y-2">
+        <button
+          onClick={onExportJson}
+          className="w-full bg-sky-600 hover:bg-sky-500 text-white font-medium py-2 rounded-lg transition-colors"
+        >
+          Export Verification Rubric JSON
+        </button>
+        {onExportMarkdown && (
+          <button
+            onClick={onExportMarkdown}
+            className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-medium py-1.5 rounded-lg transition-colors"
+          >
+            Export Markdown Grading Report (.md)
+          </button>
+        )}
+      </div>
     </aside>
   );
 };

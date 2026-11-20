@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DiffStage } from './components/DiffStage';
 import { RubricSidebar } from './components/RubricSidebar';
 import { BoundingBox, ComparisonMode, DiffMetrics, RubricAnnotation } from './types/diff';
+import { generateMarkdownRubricReport } from './utils/reportGenerator';
 
 const INITIAL_ANNOTATIONS: RubricAnnotation[] = [
   {
@@ -61,6 +62,17 @@ export default function App() {
     const a = document.createElement('a');
     a.href = url;
     a.download = 'ui-verification-rubric.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportMarkdown = () => {
+    const md = generateMarkdownRubricReport(metrics, annotations);
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ui-verification-report.md';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -160,6 +172,7 @@ export default function App() {
             setSelectedId(null);
           }}
           onExportJson={handleExportJson}
+          onExportMarkdown={handleExportMarkdown}
         />
       </main>
     </div>
