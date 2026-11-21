@@ -1,5 +1,7 @@
 # Canvas UI Diff Bench
 
+![CI Verification](https://github.com/cheng-aik/canvas-ui-diff-bench/actions/workflows/ci.yml/badge.svg)
+
 An **HTML5 Canvas 2D Visual Regression Comparator & Objective Rubric Workbench** built with **React 18** and **TypeScript**. Designed for evaluating frontend UI implementations against reference design mockups using pixel-level `ImageData` analysis and spatial bounding-box assertions.
 
 ## Core Capabilities
