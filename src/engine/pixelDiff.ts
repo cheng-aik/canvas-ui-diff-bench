@@ -19,10 +19,11 @@ export function computeRegionMismatchPercent(
   let mismatches = 0;
   let count = 0;
 
-  const startX = Math.max(0, Math.floor(bounds.x));
-  const startY = Math.max(0, Math.floor(bounds.y));
-  const endX = startX + Math.max(1, Math.floor(bounds.width));
-  const endY = startY + Math.max(1, Math.floor(bounds.height));
+  const totalHeight = Math.floor(baseline.length / (4 * Math.max(1, canvasWidth)));
+  const startX = Math.max(0, Math.min(canvasWidth, Math.floor(bounds.x)));
+  const startY = Math.max(0, Math.min(totalHeight, Math.floor(bounds.y)));
+  const endX = Math.min(canvasWidth, startX + Math.max(1, Math.floor(bounds.width)));
+  const endY = Math.min(totalHeight, startY + Math.max(1, Math.floor(bounds.height)));
 
   for (let y = startY; y < endY; y++) {
     for (let x = startX; x < endX; x++) {
